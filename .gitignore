@@ -1,0 +1,6 @@
+*.d
+**/build
+**/devel
+**/.idea
+**/.vscode
+**/Tutorials
