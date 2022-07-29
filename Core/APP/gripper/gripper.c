@@ -32,6 +32,14 @@ Gripper *Gripper_Create() {
     internal_buzzer_config.bsp_pwm_index = PWM_BUZZER_PORT;
     obj->internal_buzzer = Buzzer_Create(&internal_buzzer_config);
 
+    // 舵机
+    Servo_config servo_1_config;
+    servo_1_config.model = MODEL_POS;
+    servo_1_config.bsp_pwm_index = PWM_SERVO_1_PORT;
+    servo_1_config.max_angle = 270;
+    servo_1_config.initial_angle = 237;
+    obj->servo_1 = Servo_Create(&servo_1_config);
+
     return obj;
 }
 
@@ -40,5 +48,9 @@ void Gripper_Update(Gripper *obj) {
         if(!buzzer_started){buzzer_started = 1;
         Buzzer_Start(obj->internal_buzzer);}
     }
+    static int delta_i=0;
+    obj->servo_1->pos_servo_control = 237+delta_i;
+    if(delta_i>30)delta_i=-30;
+    delta_i++;
     
 }

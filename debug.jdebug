@@ -22,12 +22,12 @@ void OnProjectLoad (void) {
   //
   // Dialog-generated settings
   //
-  Project.AddPathSubstitute ("/usr/workspace/stm32f407_c_controller", "$(ProjectDir)");
-  Project.AddPathSubstitute ("/usr/workspace/stm32f407_c_controller", "$(ProjectDir)");
   Project.SetDevice ("STM32F407IG");
-  Project.SetHostIF ("USB", "29783368");
+  Project.SetHostIF ("USB", "-1");
   Project.SetTargetIF ("SWD");
   Project.SetTIFSpeed ("4 MHz");
+  Project.AddPathSubstitute ("/usr/workspace/stm32f407_c_controller", "$(ProjectDir)");
+  Project.AddPathSubstitute ("/usr/workspace/stm32f407_c_controller", "$(ProjectDir)");
   Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M4F.svd");
   Project.AddSvdFile ("$(InstallDir)/Config/Peripherals/STM32F407IG.svd");
   //

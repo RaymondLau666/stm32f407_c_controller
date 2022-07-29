@@ -17,6 +17,4 @@ gripper_board_cmd* Gripper_board_CMD_Create() {
 
 void Gripper_board_CMD_Update(gripper_board_cmd* obj) {
 
-
-
 }

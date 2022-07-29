@@ -20,7 +20,5 @@ void APP_Loop() {
 void APP_Log_Loop() {}
 
 void APP_Layer_default_loop() {
-    // if (gripper->imu->bias_init_success) {
-    //     Buzzer_Update(internal_buzzer);
-    // }
+
 }

@@ -9,13 +9,14 @@
 #include "can_motor.h"
 #include "pub_sub.h"
 #include "stdint.h"
-#include "super_cap_wuli.h"
+#include "pwm_servo.h"
 
 #pragma pack(1)
 
 typedef struct Gripper_t {
     BMI088_imu *imu;
     buzzer *internal_buzzer;
+    Servo *servo_1;
 } Gripper;
 #pragma pack()
 
