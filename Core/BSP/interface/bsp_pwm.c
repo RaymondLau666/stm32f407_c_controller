@@ -20,6 +20,24 @@ void BSP_PWM_Init() {
 
     pwm_ports[2].base = PWM_2_BASE;
     pwm_ports[2].channel = PWM_2_CHANNEL;
+
+    pwm_ports[3].base = PWM_3_BASE;
+    pwm_ports[3].channel = PWM_3_CHANNEL;
+
+    pwm_ports[4].base = PWM_4_BASE;
+    pwm_ports[4].channel = PWM_4_CHANNEL;
+
+    pwm_ports[5].base = PWM_5_BASE;
+    pwm_ports[5].channel = PWM_5_CHANNEL;
+
+    pwm_ports[6].base = PWM_6_BASE;
+    pwm_ports[6].channel = PWM_6_CHANNEL;
+
+    pwm_ports[7].base = PWM_7_BASE;
+    pwm_ports[7].channel = PWM_7_CHANNEL;
+
+    pwm_ports[8].base = PWM_8_BASE;
+    pwm_ports[8].channel = PWM_8_CHANNEL;
 }
 
 void BSP_PWM_Start(uint8_t pwm_index) { HAL_TIM_PWM_Start(pwm_ports[pwm_index].base, pwm_ports[pwm_index].channel); }

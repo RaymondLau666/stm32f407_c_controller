@@ -6,7 +6,7 @@
 #include "bsp.h"
 #include "common.h"
 
-uint8_t buzzer_started=0;
+uint8_t buzzer_started = 0;
 Gripper *Gripper_Create() {
     Gripper *obj = (Gripper *)malloc(sizeof(Gripper));
     memset(obj, 0, sizeof(Gripper));
@@ -36,21 +36,74 @@ Gripper *Gripper_Create() {
     Servo_config servo_1_config;
     servo_1_config.model = MODEL_POS;
     servo_1_config.bsp_pwm_index = PWM_SERVO_1_PORT;
-    servo_1_config.max_angle = 270;
-    servo_1_config.initial_angle = 237;
+    servo_1_config.max_angle = 180;
+    servo_1_config.initial_angle = 90;
     obj->servo_1 = Servo_Create(&servo_1_config);
+
+    // 舵机
+    Servo_config servo_2_config;
+    servo_2_config.model = MODEL_POS;
+    servo_2_config.bsp_pwm_index = PWM_SERVO_2_PORT;
+    servo_2_config.max_angle = 180;
+    servo_2_config.initial_angle = 90;
+    obj->servo_2 = Servo_Create(&servo_2_config);
+
+    // 舵机
+    Servo_config servo_3_config;
+    servo_3_config.model = MODEL_POS;
+    servo_3_config.bsp_pwm_index = PWM_SERVO_3_PORT;
+    servo_3_config.max_angle = 180;
+    servo_3_config.initial_angle = 90;
+    obj->servo_3 = Servo_Create(&servo_3_config);
+
+    // 舵机
+    Servo_config servo_4_config;
+    servo_4_config.model = MODEL_POS;
+    servo_4_config.bsp_pwm_index = PWM_SERVO_4_PORT;
+    servo_4_config.max_angle = 180;
+    servo_4_config.initial_angle = 90;
+    obj->servo_4 = Servo_Create(&servo_4_config);
+
+    // 舵机
+    Servo_config servo_5_config;
+    servo_5_config.model = MODEL_POS;
+    servo_5_config.bsp_pwm_index = PWM_SERVO_5_PORT;
+    servo_5_config.max_angle = 180;
+    servo_5_config.initial_angle = 90;
+    obj->servo_5 = Servo_Create(&servo_5_config);
+
+    // 舵机
+    Servo_config servo_6_config;
+    servo_6_config.model = MODEL_POS;
+    servo_6_config.bsp_pwm_index = PWM_SERVO_6_PORT;
+    servo_6_config.max_angle = 180;
+    servo_6_config.initial_angle = 90;
+    obj->servo_6 = Servo_Create(&servo_6_config);
+
+    // 舵机
+    Servo_config servo_7_config;
+    servo_7_config.model = MODEL_POS;
+    servo_7_config.bsp_pwm_index = PWM_SERVO_7_PORT;
+    servo_7_config.max_angle = 180;
+    servo_7_config.initial_angle = 90;
+    obj->servo_7 = Servo_Create(&servo_7_config);
 
     return obj;
 }
 
 void Gripper_Update(Gripper *obj) {
+    static double delta_i = 0;
+    static int sig = 1;
+    obj->servo_2->pos_servo_control = 90 + delta_i;
+    if (delta_i > 90 || delta_i < -90) sig *= -1;
+    delta_i += sig * 0.1;
+
+    obj->servo_1->pos_servo_control = 180;
+
     if (obj->imu->bias_init_success) {
-        if(!buzzer_started){buzzer_started = 1;
-        Buzzer_Start(obj->internal_buzzer);}
+        if (!buzzer_started) {
+            buzzer_started = 1;
+            // Buzzer_Start(obj->internal_buzzer);
+        }
     }
-    static int delta_i=0;
-    obj->servo_1->pos_servo_control = 237+delta_i;
-    if(delta_i>30)delta_i=-30;
-    delta_i++;
-    
 }

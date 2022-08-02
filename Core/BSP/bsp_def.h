@@ -115,7 +115,7 @@
  * @brief      :主控用到的PWM的数目
  * @attention  :用到几个就填几个，如果更改的话需要在bsp_pwm.c中的函数里面加上额外的pwm配置，并添加如下的宏定义
  */
-#define DEVICE_PWM_CNT 3
+#define DEVICE_PWM_CNT 9
 
 /**
  * @brief      :用到DMA的PWM输出定时器口

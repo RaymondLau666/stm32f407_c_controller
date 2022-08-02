@@ -17,6 +17,12 @@ typedef struct Gripper_t {
     BMI088_imu *imu;
     buzzer *internal_buzzer;
     Servo *servo_1;
+    Servo *servo_2;
+    Servo *servo_3;
+    Servo *servo_4;
+    Servo *servo_5;
+    Servo *servo_6;
+    Servo *servo_7;
 } Gripper;
 #pragma pack()
 
