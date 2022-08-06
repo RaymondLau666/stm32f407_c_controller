@@ -53,10 +53,18 @@ typedef struct Gripper_t {
     Secondary_board_send_data send_data;
     Main_board_send_data *recv_data;
 
-    Servo *motor_1_positive;
-    Servo *motor_1_nagitive;
-    Servo *motor_2_positive;
-    Servo *motor_2_nagitive;
+    // Servo *motor_1_positive;
+    // Servo *motor_1_nagitive;
+    // Servo *motor_2_positive;
+    // Servo *motor_2_nagitive;
+
+    Servo *servo_1;
+    Servo *servo_2;
+    Servo *servo_3;
+    Servo *servo_4;
+    Servo *servo_5;
+    Servo *servo_6;
+    Servo *servo_7;
 #endif
 } Gripper;
 
