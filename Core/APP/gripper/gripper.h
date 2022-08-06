@@ -1,29 +1,41 @@
 #ifndef _GRIPPER_H
 #define _GRIPPER_H
 
+#include <arm_math.h>
+#include <math.h>
+
 #include "BMI088.h"
 #include "DT7_DR16.h"
 #include "VL53L0x.h"
 #include "app.h"
+#include "bsp.h"
 #include "bsp_def.h"
 #include "bsp_log.h"
+#include "bsp_pwm.h"
 #include "buzzer.h"
 #include "can_motor.h"
 #include "can_recv.h"
 #include "can_send.h"
+#include "common.h"
 #include "pub_sub.h"
 #include "pwm_servo.h"
 #include "stdint.h"
+#include "tim.h"
 
 #pragma pack(1)
 typedef struct Gimbal_board_send_t {
-    uint8_t motor1_spd;
-    uint8_t motor2_spd;
+    int16_t motor6_pos;
+    int16_t motor7_pos;
 } Main_board_send_data;
 
 // 云台<-底盘数据包
 typedef struct Chassis_board_send_t {
-    uint8_t useless;
+    int16_t motor6_pos_fdb;
+    int16_t motor7_pos_fdb;
+    uint8_t board_init_flag;
+    float euler_x;
+    float euler_y;
+    float euler_z;
 } Secondary_board_send_data;
 
 typedef struct Gripper_t {
@@ -40,10 +52,12 @@ typedef struct Gripper_t {
     Servo *servo_1;
     Servo *servo_2;
     Servo *servo_3;
-    Servo *servo_4;
-    Servo *servo_5;
-    Servo *servo_6;
-    Servo *servo_7;
+
+    Servo *motor_1_positive;
+    Servo *motor_1_nagitive;
+    Servo *motor_2_positive;
+    Servo *motor_2_nagitive;
+
 #else
     BMI088_imu *imu;
     buzzer *internal_buzzer;
@@ -53,10 +67,12 @@ typedef struct Gripper_t {
     Secondary_board_send_data send_data;
     Main_board_send_data *recv_data;
 
+
     // Servo *motor_1_positive;
     // Servo *motor_1_nagitive;
     // Servo *motor_2_positive;
     // Servo *motor_2_nagitive;
+
 
     Servo *servo_1;
     Servo *servo_2;
@@ -65,6 +81,7 @@ typedef struct Gripper_t {
     Servo *servo_5;
     Servo *servo_6;
     Servo *servo_7;
+
 #endif
 } Gripper;
 
