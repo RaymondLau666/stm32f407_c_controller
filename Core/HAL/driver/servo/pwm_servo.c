@@ -48,7 +48,7 @@ uint32_t servo_ccr_calc(Servo *obj) {
             }
             break;
         case MODEL_POS:
-            if (obj->pos_servo_control > obj->config.max_angle) obj->pos_servo_control = obj->config.max_angle;
+            // if (obj->pos_servo_control > obj->config.max_angle) obj->pos_servo_control = obj->config.max_angle;
             ccr = CCR_START + ((CCR_END - CCR_START) * obj->pos_servo_control / obj->config.max_angle);
             break;
         default:
