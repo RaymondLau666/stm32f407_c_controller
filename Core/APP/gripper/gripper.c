@@ -1,19 +1,18 @@
 #include "gripper.h"
 
-#include <arm_math.h>
-#include <math.h>
 
-#include "app.h"
-#include "bsp.h"
-#include "common.h"
+void can_lost(void *obj) { printf_log("CAN_lost!!!\n"); }
+
+int fuck = 2000 ;
 
 #ifdef MAIN_BOARD
-
-#else
 int motor1_spd = 0;
 int motor2_spd = 0;
 void Motor1_Setspd(int spd, Gripper *obj);
 void Motor2_Setspd(int spd, Gripper *obj);
+
+#else
+
 #endif
 
 uint8_t buzzer_started = 0;
@@ -21,13 +20,17 @@ Gripper *Gripper_Create() {
     Gripper *obj = (Gripper *)malloc(sizeof(Gripper));
     memset(obj, 0, sizeof(Gripper));
 
+
+    HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
+    HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_3);
+
     // 外设初始化
     BMI088_config internal_imu_config;
     internal_imu_config.bsp_gpio_accel_index = GPIO_BMI088_ACCEL_NS;
     internal_imu_config.bsp_gpio_gyro_index = GPIO_BMI088_GYRO_NS;
     internal_imu_config.bsp_pwm_heat_index = PWM_BMI088_HEAT_PORT;
     internal_imu_config.bsp_spi_index = SPI_BMI088_PORT;
-    internal_imu_config.temp_target = 25.0f;  //设定温度为x度
+    internal_imu_config.temp_target = 45.0f;  //设定温度为x度
     internal_imu_config.lost_callback = NULL;
     internal_imu_config.imu_axis_convert[0] = 1;
     internal_imu_config.imu_axis_convert[1] = 2;
@@ -69,7 +72,7 @@ Gripper *Gripper_Create() {
     remote_config.lost_callback = NULL;
     obj->remote = dt7_Create(&remote_config);
 
-    // 舵机1
+    // 舵机1   气室  下75 上166
     Servo_config servo_1_config;
     servo_1_config.model = MODEL_POS;
     servo_1_config.bsp_pwm_index = PWM_SERVO_1_PORT;
@@ -77,53 +80,54 @@ Gripper *Gripper_Create() {
     servo_1_config.initial_angle = 90;
     obj->servo_1 = Servo_Create(&servo_1_config);
 
-    // 舵机2
-    Servo_config servo_2_config;
-    servo_2_config.model = MODEL_POS;
-    servo_2_config.bsp_pwm_index = PWM_SERVO_2_PORT;
-    servo_2_config.max_angle = 180;
-    servo_2_config.initial_angle = 90;
-    obj->servo_2 = Servo_Create(&servo_2_config);
+    // // 舵机2  夹爪
+    // Servo_config servo_2_config;
+    // servo_2_config.model = MODEL_POS;
+    // servo_2_config.bsp_pwm_index = PWM_SERVO_2_PORT;
+    // servo_2_config.max_angle = 180;
+    // servo_2_config.initial_angle = 90;
+    // obj->servo_2 = Servo_Create(&servo_2_config);
 
-    // 舵机3
-    Servo_config servo_3_config;
-    servo_3_config.model = MODEL_POS;
-    servo_3_config.bsp_pwm_index = PWM_SERVO_3_PORT;
-    servo_3_config.max_angle = 180;
-    servo_3_config.initial_angle = 90;
-    obj->servo_3 = Servo_Create(&servo_3_config);
+    // // 舵机3
+    // Servo_config servo_3_config;
+    // servo_3_config.model = MODEL_POS;
+    // servo_3_config.bsp_pwm_index = PWM_SERVO_3_PORT;
+    // servo_3_config.max_angle = 180;
+    // servo_3_config.initial_angle = 140;
+    // obj->servo_3 = Servo_Create(&servo_3_config);
 
-    // 舵机4
-    Servo_config servo_4_config;
-    servo_4_config.model = MODEL_POS;
-    servo_4_config.bsp_pwm_index = PWM_SERVO_4_PORT;
-    servo_4_config.max_angle = 180;
-    servo_4_config.initial_angle = 90;
-    obj->servo_4 = Servo_Create(&servo_4_config);
+    // 电机 1+
+    Servo_config motor_1_positive_config;
+    motor_1_positive_config.model = MODEL_POS;
+    motor_1_positive_config.bsp_pwm_index = PWM_SERVO_4_PORT;
+    motor_1_positive_config.max_angle = 180;
+    motor_1_positive_config.initial_angle = 0;
+    obj->motor_1_positive = Servo_Create(&motor_1_positive_config);
 
-    // 舵机5
-    Servo_config servo_5_config;
-    servo_5_config.model = MODEL_POS;
-    servo_5_config.bsp_pwm_index = PWM_SERVO_5_PORT;
-    servo_5_config.max_angle = 180;
-    servo_5_config.initial_angle = 90;
-    obj->servo_5 = Servo_Create(&servo_5_config);
+    // // 电机 1-
+    // Servo_config motor_1_nagitive_config;
+    // motor_1_nagitive_config.model = MODEL_POS;
+    // motor_1_nagitive_config.bsp_pwm_index = PWM_SERVO_5_PORT;
+    // motor_1_nagitive_config.max_angle = 180;
+    // motor_1_nagitive_config.initial_angle = 0;
+    // obj->motor_1_nagitive = Servo_Create(&motor_1_nagitive_config);
 
-    // 舵机6
-    Servo_config servo_6_config;
-    servo_6_config.model = MODEL_POS;
-    servo_6_config.bsp_pwm_index = PWM_SERVO_6_PORT;
-    servo_6_config.max_angle = 180;
-    servo_6_config.initial_angle = 90;
-    obj->servo_6 = Servo_Create(&servo_6_config);
+    // 电机 2+
+    Servo_config motor_2_positive_config;
+    motor_2_positive_config.model = MODEL_POS;
+    motor_2_positive_config.bsp_pwm_index = PWM_SERVO_6_PORT;
+    motor_2_positive_config.max_angle = 180;
+    motor_2_positive_config.initial_angle = 0;
+    obj->motor_2_positive = Servo_Create(&motor_2_positive_config);
 
-    // 舵机7
-    Servo_config servo_7_config;
-    servo_7_config.model = MODEL_POS;
-    servo_7_config.bsp_pwm_index = PWM_SERVO_7_PORT;
-    servo_7_config.max_angle = 180;
-    servo_7_config.initial_angle = 90;
-    obj->servo_7 = Servo_Create(&servo_7_config);
+    // // 电机 2-
+    // Servo_config motor_2_nagitive_config;
+    // motor_2_nagitive_config.model = MODEL_POS;
+    // motor_2_nagitive_config.bsp_pwm_index = PWM_SERVO_7_PORT;
+    // motor_2_nagitive_config.max_angle = 180;
+    // motor_2_nagitive_config.initial_angle = 0;
+    // obj->motor_2_nagitive = Servo_Create(&motor_2_nagitive_config);
+
 #else
 
     // 板间通信配置
@@ -141,46 +145,67 @@ Gripper *Gripper_Create() {
     obj->recv = CanRecv_Create(&recv_config);
     obj->recv_data = (Main_board_send_data *)obj->recv->data_rx.data;
 
-    // 电机 1+
-    Servo_config motor_1_positive_config;
-    motor_1_positive_config.model = MODEL_POS;
-    motor_1_positive_config.bsp_pwm_index = PWM_SERVO_1_PORT;
-    motor_1_positive_config.max_angle = 180;
-    motor_1_positive_config.initial_angle = 0;
-    obj->motor_1_positive = Servo_Create(&motor_1_positive_config);
+     // 舵机1
+    Servo_config servo_1_config;
+    servo_1_config.model = MODEL_POS;
+    servo_1_config.bsp_pwm_index = PWM_SERVO_1_PORT;
+    servo_1_config.max_angle = 180;
+    servo_1_config.initial_angle = 0;
+    obj->servo_1 = Servo_Create(&servo_1_config);
 
-    // 电机 1-
-    Servo_config motor_1_nagitive_config;
-    motor_1_nagitive_config.model = MODEL_POS;
-    motor_1_nagitive_config.bsp_pwm_index = PWM_SERVO_2_PORT;
-    motor_1_nagitive_config.max_angle = 180;
-    motor_1_nagitive_config.initial_angle = 0;
-    obj->motor_1_nagitive = Servo_Create(&motor_1_nagitive_config);
+    // 舵机2
+    Servo_config servo_2_config;
+    servo_2_config.model = MODEL_POS;
+    servo_2_config.bsp_pwm_index = PWM_SERVO_2_PORT;
+    servo_2_config.max_angle = 180;
+    servo_2_config.initial_angle = 0;
+    obj->servo_2 = Servo_Create(&servo_2_config);
 
-    // 电机 2+
-    Servo_config motor_2_positive_config;
-    motor_2_positive_config.model = MODEL_POS;
-    motor_2_positive_config.bsp_pwm_index = PWM_SERVO_3_PORT;
-    motor_2_positive_config.max_angle = 180;
-    motor_2_positive_config.initial_angle = 0;
-    obj->motor_2_positive = Servo_Create(&motor_2_positive_config);
+    // 舵机3
+    Servo_config servo_3_config;
+    servo_3_config.model = MODEL_POS;
+    servo_3_config.bsp_pwm_index = PWM_SERVO_3_PORT;
+    servo_3_config.max_angle = 180;
+    servo_3_config.initial_angle = 0;
+    obj->servo_3 = Servo_Create(&servo_3_config);
 
-    // 电机 2-
-    Servo_config motor_2_nagitive_config;
-    motor_2_nagitive_config.model = MODEL_POS;
-    motor_2_nagitive_config.bsp_pwm_index = PWM_SERVO_4_PORT;
-    motor_2_nagitive_config.max_angle = 180;
-    motor_2_nagitive_config.initial_angle = 0;
-    obj->motor_2_nagitive = Servo_Create(&motor_2_nagitive_config);
+        // 舵机4
+    Servo_config servo_4_config;
+    servo_4_config.model = MODEL_POS;
+    servo_4_config.bsp_pwm_index = PWM_SERVO_4_PORT;
+    servo_4_config.max_angle = 180;
+    servo_4_config.initial_angle = 0;
+    obj->servo_4= Servo_Create(&servo_4_config);
+
+        // 舵机5
+    Servo_config servo_5_config;
+    servo_5_config.model = MODEL_POS;
+    servo_5_config.bsp_pwm_index = PWM_SERVO_5_PORT;
+    servo_5_config.max_angle = 180;
+    servo_5_config.initial_angle = 0;
+    obj->servo_5 = Servo_Create(&servo_5_config);
+
+
+    // 舵机6
+    Servo_config servo_6_config;
+    servo_6_config.model = MODEL_POS;
+    servo_6_config.bsp_pwm_index = PWM_SERVO_6_PORT;
+    servo_6_config.max_angle = 180;
+    servo_6_config.initial_angle = 0;
+    obj->servo_6 = Servo_Create(&servo_6_config);
+
+    // 舵机7
+    Servo_config servo_7_config;
+    servo_7_config.model = MODEL_POS;
+    servo_7_config.bsp_pwm_index = PWM_SERVO_7_PORT;
+    servo_7_config.max_angle = 180;
+    servo_7_config.initial_angle = 0;
+    obj->servo_7 = Servo_Create(&servo_7_config);
 
 #endif
 
     return obj;
 }
-
-
-
-
 
 #ifdef MAIN_BOARD
 void Gripper_Update(Gripper *obj) {
@@ -191,40 +216,22 @@ void Gripper_Update(Gripper *obj) {
         }
     }
 
-    static double delta_i = 0;
-    static int sig = 1;
-    obj->servo_2->pos_servo_control = 90 + delta_i;
-    if (delta_i > 90 || delta_i < -90) sig *= -1;
-    delta_i += sig * 0.1;
-    obj->servo_1->pos_servo_control = 180;
+    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, fuck); 
+    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, fuck); 
+    // static double delta_i = 0;
+    // static int sig = 1;
+    // obj->servo_2->pos_servo_control = 90 + delta_i;
+    // if (delta_i > 90 || delta_i < -90) sig *= -1;
+    // delta_i += sig * 0.1;
+    // obj->servo_1->pos_servo_control = 180;
 
-
-    obj->send_data.motor1_spd = obj->remote->data.rc.ch3-1024 ; 
-    obj->send_data.motor2_spd = obj->remote->data.rc.ch1-1024 ; 
+    //从板两舵机控制（遥控）
+    obj->send_data.motor6_pos = (obj->remote->data.rc.ch3 - 1024) * (90 / 660) + 90;
+    obj->send_data.motor7_pos = (obj->remote->data.rc.ch1 - 1024) * (90 / 660) + 90;
     CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));  // 板间通信
-}
 
-
-
-
-
-
-
-
-#else
-
-void Gripper_Update(Gripper *obj) {
-    if (obj->imu->bias_init_success) {
-        if (!buzzer_started) {
-            buzzer_started = 1;
-            Buzzer_Start(obj->internal_buzzer);
-        }
-    }
-
-    motor1_spd = obj->recv_data->motor1_spd;
-    motor2_spd = obj->recv_data->motor2_spd;
-    Motor1_Setspd(motor1_spd, obj);
-    Motor2_Setspd(motor2_spd, obj);
+    // Motor1_Setspd(motor1_spd, obj);
+    // Motor2_Setspd(motor2_spd, obj);
 }
 
 void Motor1_Setspd(int spd, Gripper *obj) {
@@ -251,4 +258,28 @@ void Motor2_Setspd(int spd, Gripper *obj) {
         obj->motor_2_nagitive->pos_servo_control = spd;
     }
 }
+#else
+
+void Gripper_Update(Gripper *obj) {
+    if (obj->imu->bias_init_success) {
+        if (!buzzer_started) {
+            buzzer_started = 1;
+            Buzzer_Start(obj->internal_buzzer);
+        }
+    }
+    // obj->servo_6->pos_servo_control = 0;
+    // obj->servo_7->pos_servo_control = 0;
+
+    // obj->servo_6->pos_servo_control = obj->recv_data->motor6_pos;
+    // obj->servo_7->pos_servo_control = obj->recv_data->motor7_pos;
+
+    obj->send_data.motor6_pos_fdb = obj->servo_6->pos_servo_control;
+    obj->send_data.motor7_pos_fdb = obj->servo_7->pos_servo_control;
+    obj->send_data.board_init_flag = obj->imu->bias_init_success;
+    obj->send_data.euler_x = obj->imu->data.euler_deg[0];
+    obj->send_data.euler_y = obj->imu->data.euler_deg[1];
+    obj->send_data.euler_z = obj->imu->data.euler_deg[2];
+    CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));  // 板间通信
+}
+
 #endif

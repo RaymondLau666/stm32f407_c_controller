@@ -4,7 +4,7 @@
 #include "bsp_log.h"
 
 
-// #define MAIN_BOARD
+#define MAIN_BOARD
 
 void APP_Layer_Init();
 void APP_Layer_default_loop();
