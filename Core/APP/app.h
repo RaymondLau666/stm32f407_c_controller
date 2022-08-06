@@ -3,6 +3,9 @@
 
 #include "bsp_log.h"
 
+
+// #define MAIN_BOARD
+
 void APP_Layer_Init();
 void APP_Layer_default_loop();
 // APP层的函数，输出调试信息
