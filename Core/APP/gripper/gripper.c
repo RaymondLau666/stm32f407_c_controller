@@ -7,17 +7,22 @@
 #include "bsp.h"
 #include "common.h"
 
+uint8_t buzzer_started = 0;
+
 #ifdef MAIN_BOARD
 float servo_1_target_degree = 140;
 int motor1_spd = 0;
 int motor2_spd = 0;
+void Mode_Update(Gripper *obj);
+void Up_and_Down_z_Update(Gripper *obj);
+void Fowardback_and_Roll_xy_Update(Gripper *obj);
+void Clamp_Update(Gripper *obj);  //夹爪抓取放下
 void Motor1_Setspd(int spd, Gripper *obj);
 void Motor2_Setspd(int spd, Gripper *obj);
 #else
 
 #endif
 
-uint8_t buzzer_started = 0;
 Gripper *Gripper_Create() {
     Gripper *obj = (Gripper *)malloc(sizeof(Gripper));
     memset(obj, 0, sizeof(Gripper));
@@ -28,7 +33,7 @@ Gripper *Gripper_Create() {
     internal_imu_config.bsp_gpio_gyro_index = GPIO_BMI088_GYRO_NS;
     internal_imu_config.bsp_pwm_heat_index = PWM_BMI088_HEAT_PORT;
     internal_imu_config.bsp_spi_index = SPI_BMI088_PORT;
-    internal_imu_config.temp_target = 25.0f;  //设定温度为x度
+    internal_imu_config.temp_target = 45.0f;  //设定温度为x度
     internal_imu_config.lost_callback = NULL;
     internal_imu_config.imu_axis_convert[0] = 1;
     internal_imu_config.imu_axis_convert[1] = 2;
@@ -166,57 +171,76 @@ void Gripper_Update(Gripper *obj) {
             Buzzer_Start(obj->internal_buzzer);
         }
     }
+    Mode_Update(obj);
+    Up_and_Down_z_Update(obj);           //整体z方向运动
+    Fowardback_and_Roll_xy_Update(obj);  //整体水平面方向运动
+    Clamp_Update(obj);                   //夹爪抓取放下
 
-    if (obj->remote->data.rc.s2 == 2) {
-        if (obj->remote->data.rc.ch4 > 1100)
-            servo_1_target_degree+=0.05;
-        else if (obj->remote->data.rc.ch4 < 900)
-            servo_1_target_degree-=0.05;
-    }
-    if (servo_1_target_degree > 180) {
-        servo_1_target_degree = 180;
+    // 从板
+    // obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 96.0);  // 65  162  30  96   //100   
+    // obj->send_data.servo7_pos = (int)((1024.0 - (float)obj->remote->data.rc.ch0) * (66.0 / 660.0) + 96.0);  // 127  30  162  96
+    CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));                                                  // 板间通信
+}
+
+void Up_and_Down_z_Update(Gripper *obj) {
+    if (obj->remote->data.rc.ch4 > 1100)
+        servo_1_target_degree += 0.05;
+    else if (obj->remote->data.rc.ch4 < 900)
+        servo_1_target_degree -= 0.05;
+    if (servo_1_target_degree > 175) {
+        servo_1_target_degree = 175;
     } else if (servo_1_target_degree < 95) {
         servo_1_target_degree = 95;
     }
-
     obj->servo_1->pos_servo_control = servo_1_target_degree;
-
-    obj->servo_2->pos_servo_control = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 45.0);
-    obj->servo_3->pos_servo_control = (int)(((float)obj->remote->data.rc.ch2 - 1024.0) * ((obj->remote->data.rc.ch2 >= 1024 ? 20.0 : 66.0) / 660.0) + 150.0);  // 150  170  84
-
-    // 从板
-    obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch3 - 1024.0) * (66.0 / 660.0) + 96.0);  // 65  162  30  96
-    obj->send_data.servo7_pos = (int)((1024.0 - (float)obj->remote->data.rc.ch1) * (66.0 / 660.0) + 96.0);  // 127  30  162  96
-    CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));                                                  // 板间通信
-
-    // MOTOR
-    if (obj->remote->data.rc.s2 == 3) {
-        if (obj->remote->data.rc.s1 == 3) {
-            if (obj->remote->data.rc.ch4 - 1024 > 0) {
-                motor1_spd = obj->remote->data.rc.ch4 - 1024;
-                motor2_spd = 0;
-            } else if (obj->remote->data.rc.ch4 - 1024 < 0) {
-                motor1_spd = 0;
-                motor2_spd = obj->remote->data.rc.ch4 - 1024;
-            }
-        } else if (obj->remote->data.rc.s1 == 2) {
-            motor1_spd = obj->remote->data.rc.ch4 - 1024;
-            motor2_spd = obj->remote->data.rc.ch4 - 1024;
-        }
+}
+void Fowardback_and_Roll_xy_Update(Gripper *obj) {
+    switch (obj->mode) {
+        case stop:
+        case reset:
+            motor1_spd = 0;
+            motor2_spd = 0;
+            break;
+        case run:
+            motor1_spd = (obj->remote->data.rc.ch3 - 1024) + (1024 - obj->remote->data.rc.ch2);
+            motor2_spd = (obj->remote->data.rc.ch3 - 1024) + (obj->remote->data.rc.ch2 - 1024);
+            break;
     }
     Motor1_Setspd(motor1_spd, obj);
     Motor2_Setspd(motor2_spd, obj);
 }
+void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
+    // obj->servo_2->pos_servo_control = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 45.0);
+    // obj->servo_3->pos_servo_control = (int)(((float)obj->remote->data.rc.ch2 - 1024.0) * ((obj->remote->data.rc.ch2 >= 1024 ? 20.0 : 66.0) / 660.0) + 150.0);  // 150  170  84
+    // obj->servo_2->pos_servo_control = ;
+    // obj->servo_3->pos_servo_control = ;  // 150  170  84
+}
+
+void Mode_Update(Gripper *obj) {
+    switch (obj->remote->data.rc.s2) {
+        case 1:
+            obj->mode = reset;
+            break;
+        case 3:
+            obj->mode = stop;
+            break;
+        case 2:
+            obj->mode = run;
+            break;
+        default:
+            break;
+    }
+}
 void Motor1_Setspd(int spd, Gripper *obj) {
     if (spd == 0) {
-        obj->motor_1_positive->pos_servo_control = 0;
-        obj->motor_1_nagitive->pos_servo_control = 0;
+        obj->motor_1_positive->pos_servo_control = 10;
+        obj->motor_1_nagitive->pos_servo_control = 10;
     } else if (spd > 0) {
         obj->motor_1_positive->pos_servo_control = spd;
         obj->motor_1_nagitive->pos_servo_control = 0;
     } else if (spd < 0) {
         obj->motor_1_positive->pos_servo_control = 0;
-        obj->motor_1_nagitive->pos_servo_control = spd;
+        obj->motor_1_nagitive->pos_servo_control = -    spd;
     }
 }
 void Motor2_Setspd(int spd, Gripper *obj) {
@@ -228,11 +252,11 @@ void Motor2_Setspd(int spd, Gripper *obj) {
         obj->motor_2_nagitive->pos_servo_control = 0;
     } else if (spd < 0) {
         obj->motor_2_positive->pos_servo_control = 0;
-        obj->motor_2_nagitive->pos_servo_control = spd;
+        obj->motor_2_nagitive->pos_servo_control = -spd;
     }
 }
-#else
 
+#else
 void Gripper_Update(Gripper *obj) {
     if (obj->imu->bias_init_success) {
         if (!buzzer_started) {
@@ -250,5 +274,4 @@ void Gripper_Update(Gripper *obj) {
     obj->send_data.euler_z = obj->imu->data.euler[2];
     CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));
 }
-
 #endif

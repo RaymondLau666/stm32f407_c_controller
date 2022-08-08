@@ -17,8 +17,8 @@
 
 #pragma pack(1)
 typedef struct Main_board_send_t {
-    int servo6_pos;  //0-180
-    int servo7_pos;  //0-180
+    int servo6_pos;  // 0-180
+    int servo7_pos;  // 0-180
 } Main_board_send_data;
 
 // 云台<-底盘数据包
@@ -29,6 +29,12 @@ typedef struct Secondary_board_send_t {
     float euler_z;
 } Secondary_board_send_data;
 
+typedef enum gripper_mode_e {
+    stop = 0,
+    reset,
+    run
+} Gripper_mode;
+
 typedef struct Gripper_t {
 #ifdef MAIN_BOARD
     BMI088_imu *imu;
@@ -38,6 +44,7 @@ typedef struct Gripper_t {
     can_send *send;
     Main_board_send_data send_data;
     Secondary_board_send_data *recv_data;
+    Gripper_mode mode;
 
     Servo *servo_1;
     Servo *servo_2;

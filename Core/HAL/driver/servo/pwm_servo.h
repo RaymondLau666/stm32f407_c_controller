@@ -20,8 +20,13 @@ typedef struct Speed_servo_control_t {
     Servo_direc direc;
     uint8_t speed;
 } Speed_servo_control;
+typedef enum Servo_mode_e{
+    servo_normal =0 ,
+    servo_stop
+} Servo_mode;
 
 typedef struct Servo_t {
+    Servo_mode mode;
     Servo_config config;
     // 控制量输入
     uint16_t pos_servo_control;               // 设定角度（角度式）
