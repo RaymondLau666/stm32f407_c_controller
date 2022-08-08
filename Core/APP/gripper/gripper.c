@@ -209,9 +209,9 @@ void Fowardback_and_Roll_xy_Update(Gripper *obj) {
     Motor2_Setspd(motor2_spd, obj);
 }
 void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
-    // static float servo_2_angle = 5, servo_3_angle = 180;
-    // // servo_2_angle += ((float)obj->remote->data.rc.ch1 - 1024.0) ;
-    // // servo_3_angle -= ((float)obj->remote->data.rc.ch1 - 1024.0) ;
+    static float servo_2_angle = 5, servo_3_angle = 180;
+    // servo_2_angle += ((float)obj->remote->data.rc.ch1 - 1024.0) ;
+    // servo_3_angle -= ((float)obj->remote->data.rc.ch1 - 1024.0) ;
     // servo_2_angle = abs((float)obj->remote->data.rc.ch1 - 1024.0) ;
     // servo_3_angle = 180-abs((float)obj->remote->data.rc.ch1 - 1024.0) ;
     // if (servo_2_angle < 5)
@@ -223,8 +223,8 @@ void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
     // else if (servo_3_angle > 180)
     //     servo_3_angle = 180;
 
-    // obj->servo_2->pos_servo_control = servo_2_angle;
-    // obj->servo_3->pos_servo_control = servo_3_angle;
+    obj->servo_2->pos_servo_control = servo_2_angle;
+    obj->servo_3->pos_servo_control = servo_3_angle;
 }
 void Side_Updown(Gripper *obj) {  //侧面机构(带着电机的)抬升和下降
     obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 100.0);
