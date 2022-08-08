@@ -209,19 +209,17 @@ void Fowardback_and_Roll_xy_Update(Gripper *obj) {
     Motor2_Setspd(motor2_spd, obj);
 }
 void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
-    static float servo_2_angle = 5, servo_3_angle = 180;
-    // servo_2_angle += ((float)obj->remote->data.rc.ch1 - 1024.0) ;
-    // servo_3_angle -= ((float)obj->remote->data.rc.ch1 - 1024.0) ;
-    // servo_2_angle = abs((float)obj->remote->data.rc.ch1 - 1024.0) ;
-    // servo_3_angle = 180-abs((float)obj->remote->data.rc.ch1 - 1024.0) ;
-    // if (servo_2_angle < 5)
-    //     servo_2_angle = 5;
-    // else if (servo_2_angle > 170)
-    //     servo_2_angle = 170;
-    // if (servo_3_angle < 0)
-    //     servo_3_angle = 0;
-    // else if (servo_3_angle > 180)
-    //     servo_3_angle = 180;
+    static float servo_2_angle = 25, servo_3_angle = 160;
+    servo_2_angle = 25 + abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
+    servo_3_angle = 160 - abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
+    if (servo_2_angle < 25)
+        servo_2_angle = 25;
+    else if (servo_2_angle > 75)
+        servo_2_angle = 75;
+    if (servo_3_angle < 110)
+        servo_3_angle = 110;
+    else if (servo_3_angle > 160)
+        servo_3_angle = 160;
 
     obj->servo_2->pos_servo_control = servo_2_angle;
     obj->servo_3->pos_servo_control = servo_3_angle;
