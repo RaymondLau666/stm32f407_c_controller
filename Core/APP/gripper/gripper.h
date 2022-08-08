@@ -32,7 +32,8 @@ typedef struct Secondary_board_send_t {
 typedef enum gripper_mode_e {
     stop = 0,
     reset,
-    run
+    gripperrun,
+    delta
 } Gripper_mode;
 
 typedef struct Gripper_t {
@@ -44,7 +45,7 @@ typedef struct Gripper_t {
     can_send *send;
     Main_board_send_data send_data;
     Secondary_board_send_data *recv_data;
-    Gripper_mode mode;
+    Gripper_mode gripper_mode;
 
     Servo *servo_1;
     Servo *servo_2;
