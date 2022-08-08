@@ -214,10 +214,10 @@ void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
     servo_3_angle = 160 - abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
     if (servo_2_angle < 25)
         servo_2_angle = 25;
-    else if (servo_2_angle > 75)
-        servo_2_angle = 75;
-    if (servo_3_angle < 110)
-        servo_3_angle = 110;
+    else if (servo_2_angle > 100)
+        servo_2_angle = 100;
+    if (servo_3_angle < 85)
+        servo_3_angle = 85;
     else if (servo_3_angle > 160)
         servo_3_angle = 160;
 
@@ -244,6 +244,7 @@ void Mode_Update(Gripper *obj) {
             break;
     }
 }
+
 void Motor1_Setspd(int spd, Gripper *obj) {
     if (spd == 0) {
         obj->motor_1_positive->pos_servo_control = -45;  // 1755
