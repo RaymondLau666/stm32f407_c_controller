@@ -29,7 +29,7 @@ typedef struct Servo_t {
     Servo_mode mode;
     Servo_config config;
     // 控制量输入
-    uint16_t pos_servo_control;               // 设定角度（角度式）
+    int32_t pos_servo_control;               // 设定角度（角度式）
     Speed_servo_control speed_servo_control;  // 360舵机（速度式）
 } Servo;
 #pragma pack()

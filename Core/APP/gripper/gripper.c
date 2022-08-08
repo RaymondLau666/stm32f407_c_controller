@@ -177,9 +177,9 @@ void Gripper_Update(Gripper *obj) {
     Clamp_Update(obj);                   //夹爪抓取放下
 
     // 从板
-    // obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 96.0);  // 65  162  30  96   //100   
+    // obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 96.0);  // 65  162  30  96   //100
     // obj->send_data.servo7_pos = (int)((1024.0 - (float)obj->remote->data.rc.ch0) * (66.0 / 660.0) + 96.0);  // 127  30  162  96
-    CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));                                                  // 板间通信
+    CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));  // 板间通信
 }
 
 void Up_and_Down_z_Update(Gripper *obj) {
@@ -233,25 +233,25 @@ void Mode_Update(Gripper *obj) {
 }
 void Motor1_Setspd(int spd, Gripper *obj) {
     if (spd == 0) {
-        obj->motor_1_positive->pos_servo_control = 10;
-        obj->motor_1_nagitive->pos_servo_control = 10;
+        obj->motor_1_positive->pos_servo_control = -45;  // 1755
+        obj->motor_1_nagitive->pos_servo_control = -45;
     } else if (spd > 0) {
         obj->motor_1_positive->pos_servo_control = spd;
-        obj->motor_1_nagitive->pos_servo_control = 0;
+        obj->motor_1_nagitive->pos_servo_control = -45;
     } else if (spd < 0) {
-        obj->motor_1_positive->pos_servo_control = 0;
-        obj->motor_1_nagitive->pos_servo_control = -    spd;
+        obj->motor_1_positive->pos_servo_control = -45;
+        obj->motor_1_nagitive->pos_servo_control = -spd;
     }
 }
 void Motor2_Setspd(int spd, Gripper *obj) {
     if (spd == 0) {
-        obj->motor_2_positive->pos_servo_control = 0;
-        obj->motor_2_nagitive->pos_servo_control = 0;
+        obj->motor_2_positive->pos_servo_control = -45;
+        obj->motor_2_nagitive->pos_servo_control = -45;
     } else if (spd > 0) {
         obj->motor_2_positive->pos_servo_control = spd;
-        obj->motor_2_nagitive->pos_servo_control = 0;
+        obj->motor_2_nagitive->pos_servo_control = -45;
     } else if (spd < 0) {
-        obj->motor_2_positive->pos_servo_control = 0;
+        obj->motor_2_positive->pos_servo_control = -45;
         obj->motor_2_nagitive->pos_servo_control = -spd;
     }
 }
