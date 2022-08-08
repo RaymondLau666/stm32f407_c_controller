@@ -33,7 +33,7 @@ typedef enum gripper_mode_e {
     stop = 0,
     reset,
     gripperrun,
-    delta
+    gripperdelta
 } Gripper_mode;
 
 typedef struct Gripper_t {

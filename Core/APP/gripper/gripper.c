@@ -194,13 +194,13 @@ void Up_and_Down_z_Update(Gripper *obj) {
     obj->servo_1->pos_servo_control = servo_1_target_degree;
 }
 void Fowardback_and_Roll_xy_Update(Gripper *obj) {
-    switch (obj->mode) {
+    switch (obj->gripper_mode) {
         case stop:
         case reset:
             motor1_spd = 0;
             motor2_spd = 0;
             break;
-        case run:
+        case gripperrun:
             motor1_spd = (obj->remote->data.rc.ch3 - 1024) + (1024 - obj->remote->data.rc.ch2);
             motor2_spd = (obj->remote->data.rc.ch3 - 1024) + (obj->remote->data.rc.ch2 - 1024);
             break;
@@ -210,8 +210,14 @@ void Fowardback_and_Roll_xy_Update(Gripper *obj) {
 }
 void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
     static float servo_2_angle = 25, servo_3_angle = 160;
-    servo_2_angle = 25 + abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
-    servo_3_angle = 160 - abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
+
+    if (obj->remote->data.rc.s1 != 1) {
+        servo_2_angle += (obj->remote->data.rc.ch1 - 1024.0) * 0.002;
+        servo_3_angle -= (obj->remote->data.rc.ch1 - 1024.0) * 0.002;
+    } else {
+        servo_2_angle = 25 + abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
+        servo_3_angle = 160 - abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
+    }
     if (servo_2_angle < 25)
         servo_2_angle = 25;
     else if (servo_2_angle > 100)
@@ -225,23 +231,41 @@ void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
     obj->servo_3->pos_servo_control = servo_3_angle;
 }
 void Side_Updown(Gripper *obj) {  //侧面机构(带着电机的)抬升和下降
-    obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 100.0);
-    obj->send_data.servo7_pos = (int)((1024.0 - (float)obj->remote->data.rc.ch0) * (66.0 / 660.0) + 55.0);
+    static float servo_6_angle = 100, servo_7_angle = 55;
+    if (obj->remote->data.rc.s1 != 1) {
+        servo_6_angle += (obj->remote->data.rc.ch0 - 1024.0) * 0.002;
+        servo_7_angle -= (obj->remote->data.rc.ch0 - 1024.0) * 0.002;
+        if (servo_6_angle > 160)
+            servo_6_angle = 160;
+        else if (servo_6_angle < 20)
+            servo_6_angle = 20;
+        if (servo_7_angle > 110)
+            servo_7_angle = 110;
+        else if (servo_7_angle < 10)
+            servo_7_angle = 10;
+
+        obj->send_data.servo6_pos = servo_6_angle;
+        obj->send_data.servo7_pos = servo_7_angle;
+    } else {
+        obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 100.0);
+        obj->send_data.servo7_pos = (int)((1024.0 - (float)obj->remote->data.rc.ch0) * (66.0 / 660.0) + 55.0);
+    }
 }
 
 void Mode_Update(Gripper *obj) {
-    switch (obj->remote->data.rc.s2) {
-        case 1:
-            obj->mode = reset;
-            break;
-        case 3:
-            obj->mode = stop;
-            break;
-        case 2:
-            obj->mode = run;
-            break;
-        default:
-            break;
+    if (obj->remote->data.rc.s1 == 1) {
+        if (obj->remote->data.rc.s2 == 1)
+            obj->gripper_mode = reset;  //复位模式
+        else if (obj->remote->data.rc.s2 == 3)
+            obj->gripper_mode = stop;  //停止模式
+        else if (obj->remote->data.rc.s2 == 2) {
+            if (obj->remote->data.rc.s1 == 1) {
+                obj->gripper_mode = gripperrun;
+            }  //运行模式
+            if (obj->remote->data.rc.s1 != 1) {
+                obj->gripper_mode = gripperdelta;  //增量遥控模式
+            }
+        }
     }
 }
 
