@@ -17,6 +17,8 @@ void Mode_Update(Gripper *obj);
 void Up_and_Down_z_Update(Gripper *obj);
 void Fowardback_and_Roll_xy_Update(Gripper *obj);
 void Clamp_Update(Gripper *obj);  //夹爪抓取放下
+void Side_Updown(Gripper *obj);   //侧面机构(带着电机的)抬升和下降
+
 void Motor1_Setspd(int spd, Gripper *obj);
 void Motor2_Setspd(int spd, Gripper *obj);
 #else
@@ -87,14 +89,14 @@ Gripper *Gripper_Create() {
     servo_2_config.model = MODEL_POS;
     servo_2_config.bsp_pwm_index = PWM_SERVO_2_PORT;
     servo_2_config.max_angle = 180;
-    servo_2_config.initial_angle = 45;
+    servo_2_config.initial_angle = 5;
     obj->servo_2 = Servo_Create(&servo_2_config);
     // 舵机3  夹爪2
     Servo_config servo_3_config;
     servo_3_config.model = MODEL_POS;
     servo_3_config.bsp_pwm_index = PWM_SERVO_3_PORT;
     servo_3_config.max_angle = 180;
-    servo_3_config.initial_angle = 150;
+    servo_3_config.initial_angle = 180;
     obj->servo_3 = Servo_Create(&servo_3_config);
     // 电机 1+
     Servo_config motor_1_positive_config;
@@ -172,13 +174,10 @@ void Gripper_Update(Gripper *obj) {
         }
     }
     Mode_Update(obj);
-    Up_and_Down_z_Update(obj);           //整体z方向运动
-    Fowardback_and_Roll_xy_Update(obj);  //整体水平面方向运动
-    Clamp_Update(obj);                   //夹爪抓取放下
-
-    // 从板
-    // obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 96.0);  // 65  162  30  96   //100
-    // obj->send_data.servo7_pos = (int)((1024.0 - (float)obj->remote->data.rc.ch0) * (66.0 / 660.0) + 96.0);  // 127  30  162  96
+    Up_and_Down_z_Update(obj);                              //整体z方向运动
+    Fowardback_and_Roll_xy_Update(obj);                     //整体水平面方向运动
+    Clamp_Update(obj);                                      //夹爪抓取放下
+    Side_Updown(obj);                                       //从板：侧面机构(带着电机的)抬升和下降
     CanSend_Send(obj->send, (uint8_t *)&(obj->send_data));  // 板间通信
 }
 
@@ -210,10 +209,26 @@ void Fowardback_and_Roll_xy_Update(Gripper *obj) {
     Motor2_Setspd(motor2_spd, obj);
 }
 void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
-    // obj->servo_2->pos_servo_control = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 45.0);
-    // obj->servo_3->pos_servo_control = (int)(((float)obj->remote->data.rc.ch2 - 1024.0) * ((obj->remote->data.rc.ch2 >= 1024 ? 20.0 : 66.0) / 660.0) + 150.0);  // 150  170  84
-    // obj->servo_2->pos_servo_control = ;
-    // obj->servo_3->pos_servo_control = ;  // 150  170  84
+    // static float servo_2_angle = 5, servo_3_angle = 180;
+    // // servo_2_angle += ((float)obj->remote->data.rc.ch1 - 1024.0) ;
+    // // servo_3_angle -= ((float)obj->remote->data.rc.ch1 - 1024.0) ;
+    // servo_2_angle = abs((float)obj->remote->data.rc.ch1 - 1024.0) ;
+    // servo_3_angle = 180-abs((float)obj->remote->data.rc.ch1 - 1024.0) ;
+    // if (servo_2_angle < 5)
+    //     servo_2_angle = 5;
+    // else if (servo_2_angle > 170)
+    //     servo_2_angle = 170;
+    // if (servo_3_angle < 0)
+    //     servo_3_angle = 0;
+    // else if (servo_3_angle > 180)
+    //     servo_3_angle = 180;
+
+    // obj->servo_2->pos_servo_control = servo_2_angle;
+    // obj->servo_3->pos_servo_control = servo_3_angle;
+}
+void Side_Updown(Gripper *obj) {  //侧面机构(带着电机的)抬升和下降
+    obj->send_data.servo6_pos = (int)(((float)obj->remote->data.rc.ch0 - 1024.0) * (66.0 / 660.0) + 100.0);
+    obj->send_data.servo7_pos = (int)((1024.0 - (float)obj->remote->data.rc.ch0) * (66.0 / 660.0) + 55.0);
 }
 
 void Mode_Update(Gripper *obj) {
@@ -265,8 +280,13 @@ void Gripper_Update(Gripper *obj) {
         }
     }
 
-    obj->servo_6->pos_servo_control = obj->recv_data->servo6_pos;
-    obj->servo_7->pos_servo_control = obj->recv_data->servo7_pos;
+    if (obj->recv->data_updated) {
+        obj->servo_6->pos_servo_control = obj->recv_data->servo6_pos;
+        obj->servo_7->pos_servo_control = obj->recv_data->servo7_pos;
+    } else {
+        obj->servo_6->pos_servo_control = 100;
+        obj->servo_7->pos_servo_control = 55;
+    }
 
     obj->send_data.init_flag = obj->imu->bias_init_success;
     obj->send_data.euler_x = obj->imu->data.euler[0];
