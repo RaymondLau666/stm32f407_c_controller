@@ -212,8 +212,8 @@ void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
     static float servo_2_angle = 25, servo_3_angle = 160;
 
     if (obj->remote->data.rc.s1 != 1) {
-        servo_2_angle += (obj->remote->data.rc.ch1 - 1024.0) * 0.002;
-        servo_3_angle -= (obj->remote->data.rc.ch1 - 1024.0) * 0.002;
+        servo_2_angle += (obj->remote->data.rc.ch1 - 1024.0) * 0.0002;
+        servo_3_angle -= (obj->remote->data.rc.ch1 - 1024.0) * 0.0002;
     } else {
         servo_2_angle = 25 + abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
         servo_3_angle = 160 - abs((float)obj->remote->data.rc.ch1 - 1024.0) * 0.2;
@@ -233,8 +233,8 @@ void Clamp_Update(Gripper *obj) {  //夹爪抓取放下
 void Side_Updown(Gripper *obj) {  //侧面机构(带着电机的)抬升和下降
     static float servo_6_angle = 100, servo_7_angle = 55;
     if (obj->remote->data.rc.s1 != 1) {
-        servo_6_angle += (obj->remote->data.rc.ch0 - 1024.0) * 0.002;
-        servo_7_angle -= (obj->remote->data.rc.ch0 - 1024.0) * 0.002;
+        servo_6_angle += (obj->remote->data.rc.ch0 - 1024.0) * 0.0002;
+        servo_7_angle -= (obj->remote->data.rc.ch0 - 1024.0) * 0.0002;
         if (servo_6_angle > 160)
             servo_6_angle = 160;
         else if (servo_6_angle < 20)
